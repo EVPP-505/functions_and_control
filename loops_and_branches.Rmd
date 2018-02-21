@@ -1,0 +1,345 @@
+---
+title: "Introduction to Branching and Looping"
+output: html_notebook
+---
+
+Today we are going to be talking about branching (if-then) and looping.  Computers are really good at repetition.  Loops are one of the most powerful aspects of computers, and is one of the primary reasons we use them.
+
+The apply family of functions are base R vectorized looping function.  These are very fast, and can be powerful, but come at the cost of an often confusing syntax and execution.  I mention them because you should be aware of them, and we will use them in the future for specific tasks, but these will not be part of this initial discussion.
+
+The functions are:
+
+1) `apply()` is the base function.  The required arguments are a data object (vector, array, etc.) to loop, the dimension (rows/columns), and a function;
+2) `lapply()` is a special version of apply for list objects;
+3) `mapply()` is a special version for matrices;
+4) `tapply()` is a special version for ragged arrays (those with different dimensions).
+
+Many, many discussions can be found regarding the speed advantage of `apply()`, and almost any question asked to the StackOverflow communtity will inevitably include an optimized, single line solution using `apply()`.  While very powerful, the `apply()` family can be hard or confusing to implement, and one of the fundamental outcomes of the class is to write code you __*understand*__ and can reuse.  We are also less concerned about raw processing speed, so, we will instead focus on more straightforward types of loops, `for()` and `while()`.
+
+* A `for()` loop is used to iterate a finite set or sequence, for example, the number of rows in a dataset.  The size can be discovered programattically using functions like `length()`, `dim()`, `nrow()` or `ncol()`.  You can also define a specific range like, `1:10`.
+
+* A `while()` loop is a conditional loop that will execute as long as the condition is met (true).  A `while()` loop might be useful in a case like, "do something as long as my data value is less than 20."
+
+For now, lets focus on `for()` loops.  The construction of the loop requires an index variable and a sequence.  The index variable can be any valid variable name, but values like i, k, j are really common.  The index variable holds the current value of the sequence within the loop, and is used to extract values from other objects using vector indexing (remember that?).
+
+Let's see how this works in a simple example. Let's write a function to print a name passed as an argument and see how we can also use the index.
+
+```{r simple-function}
+# a simple function that accepts a name (n) and index (i) as arguments
+printNames <- function(n, i) {
+  # sprintf uses the placeholders, %s for string and %i for integer, to place the variable 
+  # within the string.  I personally like this function for constructing strings.
+  p1 <- sprintf("Hi %s, this is a loop at index %i.", n, i)
+  print(p1) #print the result
+}
+
+# we can call the function with a single value
+printNames("Tres", 1)
+
+```
+
+Now we have a function that we can use in a loop.  Let's create a vector of names we want to pass to the function.  Then we can wrap our function in a loop that will go over each value.  A common construct for loops is to generate a sequence to iterate.  To do this, we use the syntax variable `in` sequence of values, where `in` is a reserved word.
+
+Recall indexing vectors uses numeric values to select values at a given position (e.g. v1[2]).  A sequence generally, but not always, refers to the length of a reference object, like the number of elements in a vector.  We can find the length of a vector and use that to create a sequence of values.
+
+```{r test-length}
+# a vector of people
+people <- c("Monica", "Kristen", "Spencer", "Tres")
+
+# look at how long the vector is
+length(people)
+
+```
+
+We can now see there are 4 elements in the vector `people`.  A straight forward means to create a loop sequence is to use the syntax: `1:length(people)`.  However, a safer way to generate the same sequence is to use the `seq_along()` function, which will safely handle vectors of zero length. Basically, this is a precaution, and is good code practice.
+
+```{r add-loop}
+# create a loop for the sequence 1,2,3,4 that starts at 1.  The value of the current position is  held in the variable i
+for(i in 1:length(people)) {
+  # we pass the value of the vector people at position i, and the index itself
+  printNames(people[i], i)
+}
+
+
+# a better version of the function uses seq_along() in place of the 1:length()
+for(i in seq_along(people)) {
+  # we pass the value of the vector people at position i, and the index itself
+  printNames(people[i], i)
+}
+
+```
+
+We can use the index value to extract data from other data.  In this next example, let's add a vector of last names inside the function and construct a full name.
+
+```{r loop-function}
+# the same function arguments
+printNames <- function(n, i) {
+  # a vector of last names
+  v1 <- c("Carlsen", "Lehman", "Goyette", "Montano")
+  # rebuild the string using a new argument for last name that is indexed at the same
+  # position as the incoming first name.
+  p1 <- sprintf("Hi %s %s, this is a loop at index %i.", n, v1[i], i)
+  print(p1)
+}
+
+# people <- c("Monica", "Kristen", "Spencer", "Tres")
+
+# the same loop
+for(i in seq_along(people)) {
+  printNames(people[i], i)
+}
+
+```
+
+We can also nest loops within each other.  This can be useful if you have a master group of data you want to perform a list of analysis on.  The outer and inner loops should have different indices for the sequences.  Using the same variable name will result in confusion between indexes and make a mess.
+
+An important part of nesting loops is to balance the `{}` of the loop and make sure the inner loop is contained within the outer loop.
+
+```{r nest-loop}
+# Nested Loop
+# Let's create a new vector of weeks left in class.
+weeks <- c(5,4,3,2,1)
+
+# build an outer loop.
+for(some_variable in seq_along(weeks)) { # open the outer loop
+  # a note about what week we are in
+  p3 <- sprintf("There are only %i weeks left!", weeks[some_variable])
+  print(p3)
+  # the inner loop
+  for(i in seq_along(people)) { # open the inner loop
+    # a message about the current week
+    p1 <- sprintf("%s needs to come up with a project!", people[i])
+    print(p1)
+  } # close the inner loop
+  
+} #close the outer loop
+
+```
+
+We can also build a loop out of vector *values* directly.  In this case, we don't have to index the vector, but we also lose the ability to reuse the index.  However, we will learn how to use the value for indexing in a future example.
+
+```{r value-index}
+# this construct provides the value from the vector directly instead of the position of the sequence
+for(person in people){
+  print(paste("Hi", person))
+} 
+
+# we can't use the value as a numerical index
+for(i in people) {
+  # doesn't work!
+  print(weeks[i])
+}
+
+```
+
+
+
+## Branching
+
+Let's talk about control structures.  Control in this case is making a decision based on some critera like a name or value.  R has several types of conditionals:
+
+1) `if() and else()`;
+2) `switch()`;
+3) `ifelse()`.
+
+The most common statements you will see and use are the `if()` and `else()`.  I separate these becuase an `if()` statement can be used without an accompanying `else()`.  That is, I can simply test the condition with an `if()` and move on if it's not TRUE.  The `else()` portion is there to provide an alternative if you need one.  Symantically, "If x is TRUE then do this, otherwise, do this other thing."
+
+We can put together multiple test criteria using `&&` (and) and `||` (or) operators between conditions.  Note that in `if()` statements we use the double version of `&&` and `||`, which is different than the vectorized single (& |) version we use in functions like `filter()`.
+
+Each statement of the condition must be self-contained, meaning that you should be able to execute each part of an `if()` condition individually.  For example, whereas the statement `if(x > 1 && y == 0)` will test the two conditions and execute, the statement `if(name == "Tres" || "Monica")` will not evaluate because the term Monica is not related to a testable condition.  We rewrite that to be self-contained: `if(name == "Tres" || name == "Monica")`.
+
+Let's write a function to print a personalized statement based on names.
+
+```{r conditions}
+# This function will accept the name of a person and print a personalized greeting based on that name.
+personalizedGreeting <- function(person) {
+  # if the person is Kristen or Tres print personal greeting
+  # the | operator is an OR consition that we can use to join two conditions
+  if(person == "Kristen" || person == "Tres") {
+    p <- sprintf("Hi %s! This is your personal greeting :)", person)
+  # provide an alternative to the condition
+  } else {
+    p <- sprintf("Sorry %s, this just a generic greeting :(", person)
+  }
+  print(p)
+}
+# Test it with a single name
+personalizedGreeting("Monica")
+
+# we can use the function in a loop that will test each name in our people vector
+for(person in people) {
+  personalizedGreeting(person)
+}
+```
+
+We can combine a series of conditions to execute for particular circumstances.  Remember that `if()` statement can be used individually and don't have to be related to an `else()`.
+
+```{r list-if}
+
+switchWeek <- function(week) {
+  if(week == 1){
+    p <- "OMG, only 1 week left!"
+  }
+  if(week == 2){
+    p <- "I still have two weeks."
+  }
+  if(week == 3) {
+    p <- "No problem, three weeks is plenty."
+  }
+  if(week == 4){
+    p <- "Four weeks is more than enough"
+  }
+  if(week == 5) {
+    p <- "What project..."
+  }
+  
+  print(p)
+}
+
+switchWeek(3)
+```
+
+However, the is a more compact way to achieve the same result using a `switch()` statement.  `switch()` will test a number of conditions to find a match.  Let's write a function to test the names from people and print a custom message.
+
+```{r switch-stmt}
+whoAmI <- function(person){
+  w <- switch(person,
+       Monica = sprintf("Hi %s! You're a Botanist", person),
+       Spencer = sprintf("Hi %s! You're an SI lab tech", person),
+       Kristen = sprintf("Hi %s!, You're a mother.", person),
+       Tres =  sprintf("Hi %s!, You're a geographer.", person)
+       )
+  print(w)
+}
+whoAmI("Spencer")
+
+```
+
+While not required, it's common to provide a default condition at the end.  If no default is provided the `switch()` should quietly return nothing.  A rewrite of the `whoAmI()`, adds a final, default value.
+
+```{r whoAmI-default}
+whoAmI <- function(person){
+  w <- switch(person,
+       Monica = sprintf("Hi %s! You're a Botanist", person),
+       Spencer = sprintf("Hi %s! You're a SI special person", person),
+       Kristen = sprintf("Hi %s!, You're a mother.", person),
+       Tres =  sprintf("Hi %s!, You're a geographer.", person),
+       sprintf("Sorry %s, I don't know who you are.", person) # a default value
+       )
+  print(w)
+}
+whoAmI("Chase")
+
+```
+
+Let's rewrite the `switchWeek()` function using a `switch()`.  A trick with the `switch()` statement in R is the evaulation of integers.  R doesn't work with ingeters directly, but will evaulate the corresponding postion if given an integer.  This is confusing, so look at the following code:
+
+```{r switch-int}
+# This won't work and will throw an error at the 1
+switchWeek <- function(week) {
+  a <- switch(week,
+    1 = "OMG, only 1 week left!",
+    2 = "I still have two weeks.",
+    3 = "No problem, three weeks is plenty.",
+    4 = "Four weeks is more than enough",
+    5 = "What project..."
+  )
+}
+```
+
+But, if we rewrite the `switch()` to use the string of the integer this works.
+
+```{r switch-int-string}
+switchWeek <- function(week) {
+  # use the argument week for the switch
+  a <- switch(week,
+    "1" = "OMG, only 1 week left!", # when week = 1
+    "2" = "I still have two weeks.",
+    "3" = "No problem, three weeks is plenty.",
+    "4" = "Four weeks is more than enough",
+    "5" = "What project..."
+  )
+  print(a)
+}
+switchWeek(1)
+```
+
+This works even when we pass the integer becuase R is ignoring the "integer".  If we rewrite the function to just have the sentences we can see that R is just looking for the string at the position of the integer.
+
+```{r switch-postion}
+
+switchWeek <- function(week) {
+   a <- switch(week,
+    "OMG, only 1 week left!", # when week = 1
+    "I still have two weeks.",
+    "No problem, three weeks is plenty.",
+    "Four weeks is more than enough",
+    "What project..."
+  )
+  print(a)
+}
+
+switchWeek(3)
+
+# now change the order to see whats happening
+switchWeek <- function(week) {
+   a <- switch(week,
+    "Four weeks is more than enough",
+    "No problem, three weeks is plenty.",
+    "What project...",
+    "OMG, only 1 week left!", # when week = 1
+    "I still have two weeks."
+  )
+  print(a)
+}
+
+switchWeek(3)
+
+
+```
+
+So, the takeaway is a `switch()` statement can be useful, but you have to be careful with your expectations.  Using a `switch()` to test for strings is great, but integers require a little more thought.
+
+Let's talk about a different type of loop.  A `while()` loop includes a conditional.  Whereas a `for()` loop executes _n_ number of times (e.g. `for(i in 1:10)`) a `while()` loop executes until a condition is met.  For example, do something while my value is less than 5.
+
+
+```{r while-loop}
+# we need a counter
+week <- 1
+# add a condition to test and repeat while TRUE
+while(week < 5) {
+  # an arbitrary statement
+  print(sprintf("We are in week %i", week))
+  # increment the counter
+  week <- week + 1
+}
+
+```
+
+A `while()` loop will only execute if the initial condition is TRUE.  So, if you need to execute your code *at least* once, use the `repeat()` loop instead.  This one requires a little more work.  The condition comes *after* the code is executed.  **BE WARY OF INFINITE LOOPS** when you are creating your conditions!
+
+```{r repeat-loop}
+# set a counter
+week <- 6
+repeat {
+  # print the week at least once
+  print(sprintf("We are in week %i", week))
+  # set the condition to test
+  # make sure this is a good condition, otherwise you will end up in an infinite loop
+  if(week > 5) {
+    # break out of the loop if the critera is met
+    break
+  }
+  # increment the counter
+  week = week + 1
+}
+```
+
+You should see that the `repeat()` continued to 6 before it stopped, indicating the execution of the code *BEFORE* the condition is tested.
+
+
+
+
+
+
+

@@ -1,0 +1,186 @@
+---
+title: "Functions"
+output: html_notebook
+---
+
+## We are going to learn about functions in R!
+
+Functions are processes that can be easily reproduced and repeated in your code.  Any analysis or process you do more than once in your code should probably be moved into a function.
+
+We construct a function with a specific group of items:
+
+1) A variable name.  Functions generally perform some action, so, as a rule of thumb, variable names for functions should be verbs.
+2) The reserved word, *function* followed by a set of parentheses `()`.  The `()` is where you send the data to be processed by your function.
+3) A set of curley braces `{}`.  Your code will live in here.
+
+A basic function looks like this:
+
+```{r first-function}
+
+doSomething <- function() print("Hello World!")
+
+doSomething()
+
+
+# This is a very basic function that doens't do anything but print a message to the terminal.
+doSomething <- function() {
+  print("Welcome to R!")
+}
+
+# call the function like this.
+doSomething()
+
+```
+
+Functions accept data (single elements, vectors of data, and even entire data frames) to work with as input called arguments.  While functions do not have to have any arguments, like the example above, more powerful functions take your data and do something with them.  Arguments are passed to the function by adding named elements between the `()`.  
+
+The values of variables generally only exist within the *scope* of the function.  The value of a variable outside a function won't change even when the same variable name is used within a function.  This is a strange concept at first, but will hopefully make more sense later.
+
+```{r function-args}
+# Note the value of base_string outside of the function never changes in the environment
+base_string <- "new string"
+base_string
+# Let's extend the example above by adding the ability to print a year to the message.
+# we can add the argument yr to this function by typing it between the ()
+doSomethingMore <- function(yr) {
+  # Let's have a base message to print.  This string doesn't change (it's static),
+  # and is not the same value as the base_string variable outside the the function.
+  # This base_string only exists inside the scope of the function.
+  base_string <- "Welcome to Spring Semester"
+  # This time we will use the function cat() to create the string to print to screen.
+  # cat() concatinates elements separated by commas into a single string.  The arguments
+  # to cat() can also include variables, like yr in this case.
+  # We can change the separator using the argument sep, in this case we will separate the 
+  # elements with a blank space " ".
+  cat(base_string, yr, "!", sep = " ")
+}
+
+# now print the string adding the year 2017.
+doSomethingMore(2018)
+
+```
+
+So, we've seen that we can pass the argument 2018 to our function and add that to a message.  However, the string doesn't look quite right.  There is a space between the ! and the year.
+
+A nice feature of functions in R is the ability to nest functions *inside* other functions; the results of functions are used as arguments to other functions.  We can improve the message output by nesting a call to a similar string function called `paste()`. 
+
+```{r func-arg2}
+
+doSomethingMore_argument <- function(yr) {
+  base_string <- "Welcome to Spring Semester"
+  # In this case, paste takes our argument, yr, and puts it together with the ! without a space.
+  # This result is used by cat() to create a better formatted message.
+  cat(base_string, paste(yr, "!", sep = ''), sep = " ")
+}
+
+# we can split the nested function into two parts
+doSomethingMore_argument <- function(yr) {
+  base_string <- "Welcome to Spring Semester"
+  # In this case, paste takes our argument, yr, and puts it together with the ! without a space.
+  # This result is used by cat() to create a better formatted message.
+  part_string <- paste(yr, "!", sep = "")
+  
+  cat(base_string, part_string, sep = " ")
+}
+
+doSomethingMore_argument(2018)
+```
+
+We can very easily write our call to `paste()` as `variableName <- paste(yr, "!", sep = '')`, and pass `variableName` to `cat()`, but we are going to nest the function for the sake of example.
+
+R processes arguments in one of two ways, by *position* and by *name*.  By default R will process arguments in the sequence they are presented.  For example, `function(var1, var2, var3)` will interpret var1, var2, var3 in sequence.  
+
+Alternately, we can present arguments explicitly by name, and change the order.  For example, `function(var3 = value1, var1 = value2, var2 = value2)`.  Calling functions like this can be more flexible, but can also add some complexiety.  We will cover this in more detail in future classes.
+
+We can add more arguments to personalize our message and illustrate how to pass them by position and by name.
+
+```{r two-args}
+# This new version keeps our yr variable, but adds a new argument id to add a name.
+doSomethingMore_multiple <- function(yr, id) {
+  base_string <- "Welcome to Spring Semester"
+  # We can add the id variable to cat() to print the personalize our message
+  # Note that the sequence of arguments in the function call is not related to when or how they
+  # are used within the function.  In this case, we are using yr before we use id despite yr
+  # being sent to the function first.
+  a <- paste(yr, "!", sep = "")
+  
+  cat(id, base_string, a, sep = " ")
+}
+
+# first call the function using positional arguments
+doSomethingMore_multiple(2017, "Tres")
+```
+
+```{r}
+# do the same thing, but reverse the arguments.
+# This result is not what we want.
+# R is assuming the value, "Tres" is yr because it is the first argument
+doSomethingMore_multiple("Tres", 2018)
+```
+
+```{r arg-named}
+# Let's look at the varible names (in case we don't know them)
+# The NULL is there because the function does not return a value
+args(doSomethingMore_multiple)
+
+# Now call the function using arguments by name.  In this case, order doesn't matter
+doSomethingMore_multiple(id = "Tres", yr = 2018)
+
+```
+
+We can also provide default values for arguments.  We do this for arguments we want to have populated even if no new value is given.  However, if a value is given, the default value is overwritten.
+
+```{r args-default}
+doSomethingMore_default <- function(id = "Tres", yr = 2018) {
+
+  base_string <- "Welcome to Spring Semester"
+  # Let's add a new call to paste0() to add a comma between the name and the message.
+  # paste0 is a version of paste that joins all the arguments together without spaces by default
+  cat(paste0(id, ","), base_string, paste(yr, "!", sep = ''), sep = " ")
+}
+
+# call the function without any arguments.  We will see the default values
+doSomethingMore_default()
+
+# but those default values will be overwritten if we give new arguments
+doSomethingMore_default("Alex", 2018)
+
+#  this works if we only provide one of the two arguments
+doSomethingMore_default(yr = 2020)
+```
+
+Functions don't have to use single values.  We can very easily pass vectors of data that will be processed within the function.  Let's change the function to use `paste()` because it's vectorized, whereas `cat()` isn't.  So, in this next example we can pass a vector of names to the function and tell everyone to have a happy new year.
+
+
+```{r args-vector}
+doSomethingMore_vector <- function(id = "Tres", yr = 2018) {
+  # Change the message, but note the original base_string outside the function does not change,
+  # nor does this version of the function reuse any of the previous base_string values
+  base_string <- "Have a great"
+  
+  # Let's replace the call to cat() with a new call to paste().
+  # In this case we need to nest paste() in a call to print() to see it on screen.
+  print(paste(base_string, yr, paste0(id, "!"), sep = " "))
+}
+# doSomethingMore_vector()
+
+# This time we will pass a vector of names to the function
+people <- c("Ida", "Spencer", "Kristen", "Monica", "Tres")
+
+# Call the function using the vector of people, but the default for yr
+doSomethingMore_vector(people)
+
+# but it still works with a single default value
+# Remember, that single value is still a vector!
+doSomethingMore_vector()
+```
+
+Let's call an external script file
+
+```{r myFirstFunction}
+source('R/mySimpleFunction.R')
+y <- mySimpleFunction(2)
+
+y
+```
+
